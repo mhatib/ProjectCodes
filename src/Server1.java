@@ -19,6 +19,8 @@ public class Server1 {
 
         bufferSize = socket.getReceiveBufferSize();
         System.out.println("Buffer size: " + bufferSize);
+        
+        //TODO: add same file type as client. Perhaps get file name and parse for file type?
         fos = new FileOutputStream("src//disp2.pdf");
         bos = new BufferedOutputStream(fos);
         byte[] bytes = new byte[bufferSize];
