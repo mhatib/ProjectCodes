@@ -14,7 +14,7 @@ public class Client1 {
         File file = new File("src//disp.pdf");
         double length = file.length();
         if (length > Integer.MAX_VALUE) {
-            System.out.println("File is too large.");
+            System.out.println("File is too large. Please try another");
         }
         byte[] bytes = new byte[(int) length];
         
