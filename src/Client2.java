@@ -10,18 +10,24 @@ import java.net.Socket;
 
 public class Client2 {
 	public static void main(String[] args) throws Exception {
+		byte[] signature = null;
         String hostName = "localhost";        
         int portNumber = 4321;
         Socket socket = new Socket(hostName, portNumber);
         PrintWriter out =new PrintWriter(socket.getOutputStream(), true);                   
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         String inputLine;
-        if(in.readLine().equals("Hello SecStore, please prove your identity")){
-        	out.println(x);
-        }
+     
         
         //Authentication Protocol begins here
         
+//        X509Certificate.getInstance(certData)
+        
+        if(in.readLine().equals("Hello SecStore, please prove your identity")){
+//        	out.println(x);
+        }else{
+        	System.out.println("Wrong password!");
+        }
         
         File file = new File("src//disp.pdf");
         double length = file.length();
