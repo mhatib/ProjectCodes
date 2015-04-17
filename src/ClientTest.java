@@ -23,6 +23,25 @@ public class ClientTest {
 		System.out.println(message.toString());
 		
 		pout.println("Send me your certificate signed by CA");
+		InputStream is = null;
+	    FileOutputStream fos = null;
+	    BufferedOutputStream bos = null;
+	    int bufferSize = 0;
+	    
+        is = socket.getInputStream();
+
+        bufferSize = socket.getReceiveBufferSize();
+        System.out.println("Buffer size: " + bufferSize);
+
+        fos = new FileOutputStream("src//servercert.crt");
+        bos = new BufferedOutputStream(fos);
+        byte[] bytes = new byte[bufferSize];
+        //System.out.println(bytes.length);
+        int count;
+        while ((count = is.read(bytes)) > 0) {
+        	System.out.println(count);
+            bos.write(bytes, 0, count);
+        }
 	    
 	}
 	
@@ -44,16 +63,16 @@ public class ClientTest {
         bufferSize = sock.getReceiveBufferSize();
         System.out.println("Buffer size: " + bufferSize);
 
-        fos = new FileOutputStream("src//serverCA.crt");
+        fos = new FileOutputStream("src//disp2.pdf");
         bos = new BufferedOutputStream(fos);
         byte[] bytes = new byte[bufferSize];
-
+        //System.out.println(bytes.length);
         int count;
-        
         while ((count = is.read(bytes)) > 0) {
+        	System.out.println(count);
             bos.write(bytes, 0, count);
         }
-        bos.close();
+        //bos.close();
 	}
     
 

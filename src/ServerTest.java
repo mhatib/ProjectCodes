@@ -41,8 +41,26 @@ public class ServerTest {
         
         text = readFromClient(socket);
         System.out.println(text);
-        
+        File file = new File("src//Signed_CSECA_server_key.crt");
+        // Get the size of the file
+        long length = file.length();
+        if (length > Integer.MAX_VALUE) {
+            System.out.println("File is too large.");
+        }
+        byte[] bytes = new byte[(int) length];
+        FileInputStream fis = new FileInputStream(file);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
+
+        int count;
+
+        while ((count = bis.read(bytes)) > 0) {
+        	System.out.println(count);
+            out.write(bytes, 0, count);
+        }
+        System.out.println("done");
         //serverSocket.close();
+        //readFromClient(socket);
 	}
 	
 	public static String readFromClient(Socket sock) throws IOException{
@@ -63,7 +81,7 @@ public class ServerTest {
 	}
 	
 	public static void sendCert(Socket sock) throws IOException{
-		File file = new File("src//Server_Cert_eD.crt");
+		File file = new File("src//disp.pdf");
         // Get the size of the file
         long length = file.length();
         if (length > Integer.MAX_VALUE) {
@@ -77,8 +95,10 @@ public class ServerTest {
         int count;
 
         while ((count = bis.read(bytes)) > 0) {
+        	System.out.println(count);
             out.write(bytes, 0, count);
         }
+        System.out.println("done");
 	}
 	
 	
