@@ -1,6 +1,9 @@
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +24,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.security.cert.X509Certificate;
 
 
 public class Client1 {
@@ -40,13 +44,41 @@ public class Client1 {
 		String initR = "Hello, this is SecStore";
 		boolean trust = false;
 		
-		
+		//Receive encrypted message
 		DataInputStream dIn = new DataInputStream(socket.getInputStream());
-
 	    byte[] message = new byte[128];
 	    dIn.readFully(message, 0, message.length); // read the message
-	    PublicKey publicKey = readPublicKey("src//publicServer.der");
-        byte[] recovered_message = decrypt(publicKey, message);
+	    
+	    //Ask for signed cert
+	    PrintWriter pout1 = new PrintWriter(socket.getOutputStream(), true);
+	    pout1.println("Send me your certificate signed by CA");
+		
+	    //Receive signed cert
+        File file = new File("src//serverCA.crt");
+        double length = file.length();
+        if (length > Integer.MAX_VALUE) {
+            System.out.println("File is too large. Final test");
+        }
+        byte[] bytes = new byte[(int) length];         
+        socket.setSoTimeout(10000);
+        FileInputStream fileIn = new FileInputStream(file);
+        BufferedInputStream buffIn = new BufferedInputStream(fileIn);
+        BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
+        
+        int count;
+        while ((count = buffIn.read(bytes)) > 0) {
+        	buffOut.write(bytes, 0, count);
+        }
+        
+        //CA public key
+    	InputStream inStream = new FileInputStream("src//PrivateKeySignedHelloFromServer");
+        X509Certificate CAcert = X509Certificate.getInstance(inStream);
+        PublicKey CAKey = CAcert.getPublicKey();
+		
+		
+        //Decrypt server cert to extract public key
+	    //PublicKey publicKey = readPublicKey("src//serverSigned.der");
+        byte[] recovered_message = decrypt(CAKey, bytes);
         String received = new String(recovered_message, "UTF8");
         if (received.equals(initR)){
         	trust = true;
@@ -57,27 +89,11 @@ public class Client1 {
 		}       
         
         
-/*        File file = new File("src//disp.pdf");
-        double length = file.length();
-        if (length > Integer.MAX_VALUE) {
-            System.out.println("File is too large. Final test");
-        }
-        byte[] bytes = new byte[(int) length];
-        
-       
-        socket.setSoTimeout(10000);
-        FileInputStream fileIn = new FileInputStream(file);
-        BufferedInputStream buffIn = new BufferedInputStream(fileIn);
-        BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
-        
-        int count;
-        while ((count = buffIn.read(bytes)) > 0) {
-        	buffOut.write(bytes, 0, count);
-        }
+
 
         fileIn.close();
         buffIn.close();
-        socket.close();*/
+        socket.close();
         
          	
     	  
