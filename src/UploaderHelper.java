@@ -39,6 +39,11 @@ public class UploaderHelper {
 		Files.write(path, bytes);
 	}
 	
+	public static void saveBytes(String filename, byte[] bytes) throws IOException{
+		FileOutputStream output = new FileOutputStream(new File("src//"+filename));
+		output.write(bytes);
+	}
+	
 	public static byte[] convertFileToByteArray(String filename){
 		Path path = Paths.get(filename);
 		File file = new File("src//"+filename);
@@ -87,6 +92,13 @@ public class UploaderHelper {
 	    return cipher.doFinal(ciphertext);
 	}
 	
+	public static byte[] decryptPri(PrivateKey key, byte[] ciphertext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException
+	{
+	    Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");   
+	    cipher.init(Cipher.DECRYPT_MODE, key);  
+	    return cipher.doFinal(ciphertext);
+	}
+	
 	public static PublicKey readPublicKey(String filename) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException
 	{
 	    X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(convertFileToByteArray(filename));
@@ -116,36 +128,18 @@ public class UploaderHelper {
     	byte[] message = msg.getBytes("UTF8");
     	byte[] secret = encrypt(privateKey, message);
     	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
+    	dOut.writeInt(secret.length);
     	dOut.write(secret);
+    	//dOut.flush();
     	//dOut.close();
 	}
 	
 	public static void sendBytes(byte[] msg, Socket sock) throws Exception{
-
+		
     	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
+    	dOut.writeInt(msg.length);
     	dOut.write(msg);
     	//dOut.close();
-	}
-	
-	public static void sendCert(Socket sock) throws IOException{
-		File file = new File("src//Signed_CSECA_server_key.crt");
-        FileInputStream in = new FileInputStream(file);
-        //OutputStream out = sock.getOutputStream();
-        copy(in, sock.getOutputStream());
-        System.out.println("test");
-        //sock.shutdownInput();
-        //out.close();
-        //in.close();
-        //System.out.println("done");
-	}
-	
-	public static void receiveCertificate(Socket sock) throws IOException{		
-		//InputStream in = sock.getInputStream();
-        FileOutputStream out = new FileOutputStream("src//cserv.crt");
-        copy(sock.getInputStream(), out);
-        //sock.shutdownInput();
-        //in.close();
-        //out.close();
 	}
 	
 	
@@ -169,6 +163,13 @@ public class UploaderHelper {
 	    return cipher.doFinal(plaintext);
 	}
 	
+	public static byte[] encryptPub(PublicKey key, byte[] plaintext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException
+	{
+	    Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");   
+	    cipher.init(Cipher.ENCRYPT_MODE, key);  
+	    return cipher.doFinal(plaintext);
+	}
+	
 	public static byte[][] divideArray(byte[] source, int chunksize) {
 		 byte[][] Bytereturn = new byte[(int)Math.ceil(source.length / (double)chunksize)][chunksize];
 		 int start = 0;
@@ -181,8 +182,11 @@ public class UploaderHelper {
 	
 	public static byte[] receiveByteArray(Socket sock) throws IOException{
 		DataInputStream dIn = new DataInputStream(sock.getInputStream());
-	    byte[] message = new byte[128];
+		int length = dIn.readInt();
+
+	    byte[] message = new byte[length];
 	    dIn.readFully(message, 0, message.length); // read the message
+
 	    return message;
 	}
 	
