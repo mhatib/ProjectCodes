@@ -1,15 +1,31 @@
-import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.util.Arrays;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.security.cert.CertificateException;
+import javax.security.cert.X509Certificate;
 
 
 public class ClientTest {
-	public static void main(String[] args) throws UnknownHostException, IOException{
+	public static void main(String[] args) throws UnknownHostException, IOException, CertificateException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
 		byte[] message = null;
 
 		String hostName = "localhost";        
@@ -21,29 +37,43 @@ public class ClientTest {
 		
 		message = receiveByteArray(socket);
 		System.out.println(message.toString());
-		
 		pout.println("Send me your certificate signed by CA");
-		InputStream is = null;
-	    FileOutputStream fos = null;
-	    BufferedOutputStream bos = null;
-	    int bufferSize = 0;
-	    
-        is = socket.getInputStream();
-
-        bufferSize = socket.getReceiveBufferSize();
-        System.out.println("Buffer size: " + bufferSize);
-
-        fos = new FileOutputStream("src//servercert.crt");
-        bos = new BufferedOutputStream(fos);
-        byte[] bytes = new byte[bufferSize];
-        //System.out.println(bytes.length);
-        int count;
-        while ((count = is.read(bytes)) > 0) {
-        	System.out.println(count);
-            bos.write(bytes, 0, count);
-        }
-	    
+		receiveCertificate(socket);
+		
+		//CA public keysigned_CS
+    	InputStream inStream = new FileInputStream("src//cserv.crt");
+        X509Certificate CAcert = X509Certificate.getInstance(inStream);
+        PublicKey CAKey = CAcert.getPublicKey();
+        
+        byte[] dec = decrypt(CAKey,message);
+		System.out.println(new String(dec,"UTF8"));
+		
 	}
+	
+	public static byte[] decrypt(PublicKey key, byte[] ciphertext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException
+	{
+	    Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");   
+	    cipher.init(Cipher.DECRYPT_MODE, key);  
+	    return cipher.doFinal(ciphertext);
+	}
+	
+	public static byte[][] divideArray(byte[] source, int chunksize) {
+		 byte[][] Bytereturn = new byte[(int)Math.ceil(source.length / (double)chunksize)][chunksize];
+		 int start = 0;
+		 for(int i = 0; i < Bytereturn.length; i++) {
+		 Bytereturn[i] = Arrays.copyOfRange(source,start, start + chunksize);
+		 start += chunksize ;
+		 }
+		 return Bytereturn;
+	}
+	
+    static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buf = new byte[8192];
+        int len = 0;
+        while ((len = in.read(buf)) != -1) {
+            out.write(buf, 0, len);
+        }
+    }
 	
 	public static byte[] receiveByteArray(Socket sock) throws IOException{
 		DataInputStream dIn = new DataInputStream(sock.getInputStream());
@@ -52,27 +82,33 @@ public class ClientTest {
 	    return message;
 	}
 	
-	public static void receiveCertificate(Socket sock) throws IOException{
-		InputStream is = null;
-	    FileOutputStream fos = null;
-	    BufferedOutputStream bos = null;
-	    int bufferSize = 0;
-	    
-        is = sock.getInputStream();
-
-        bufferSize = sock.getReceiveBufferSize();
-        System.out.println("Buffer size: " + bufferSize);
-
-        fos = new FileOutputStream("src//disp2.pdf");
-        bos = new BufferedOutputStream(fos);
-        byte[] bytes = new byte[bufferSize];
-        //System.out.println(bytes.length);
-        int count;
-        while ((count = is.read(bytes)) > 0) {
-        	System.out.println(count);
-            bos.write(bytes, 0, count);
-        }
-        //bos.close();
+	public static void receiveCertificate(Socket sock) throws IOException{		
+		InputStream in = sock.getInputStream();
+        OutputStream out = new FileOutputStream("src//cserv.crt");
+        copy(in, out);
+        out.close();
+        in.close();
+	}
+	
+	public static byte[] convertFileToByteArray(String filename){
+		Path path = Paths.get("src/"+filename);
+		File file = path.toFile();
+        byte[] b = new byte[(int) file.length()];
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            fileInputStream.read(b);
+            for (int i = 0; i < b.length; i++) {
+            	System.out.print((char)b[i]);
+            }
+        }catch (FileNotFoundException e) {
+        	System.out.println("File Not Found.");
+            e.printStackTrace();
+        }catch (IOException e1) {
+            System.out.println("Error Reading The File.");
+            e1.printStackTrace();
+       }
+        
+       return b;        
 	}
     
 

@@ -5,10 +5,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidKeyException;
@@ -41,27 +41,16 @@ public class ServerTest {
         
         text = readFromClient(socket);
         System.out.println(text);
-        File file = new File("src//Signed_CSECA_server_key.crt");
-        // Get the size of the file
-        long length = file.length();
-        if (length > Integer.MAX_VALUE) {
-            System.out.println("File is too large.");
-        }
-        byte[] bytes = new byte[(int) length];
-        FileInputStream fis = new FileInputStream(file);
-        BufferedInputStream bis = new BufferedInputStream(fis);
-        BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
-
-        int count;
-
-        while ((count = bis.read(bytes)) > 0) {
-        	System.out.println(count);
-            out.write(bytes, 0, count);
-        }
-        System.out.println("done");
-        //serverSocket.close();
-        //readFromClient(socket);
+        sendCert(socket);
 	}
+	
+    static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buf = new byte[8192];
+        int len = 0;
+        while ((len = in.read(buf)) != -1) {
+            out.write(buf, 0, len);
+        }
+    }
 	
 	public static String readFromClient(Socket sock) throws IOException{
 		InputStream inp = sock.getInputStream();
@@ -81,23 +70,12 @@ public class ServerTest {
 	}
 	
 	public static void sendCert(Socket sock) throws IOException{
-		File file = new File("src//disp.pdf");
-        // Get the size of the file
-        long length = file.length();
-        if (length > Integer.MAX_VALUE) {
-            System.out.println("File is too large.");
-        }
-        byte[] bytes = new byte[(int) length];
-        FileInputStream fis = new FileInputStream(file);
-        BufferedInputStream bis = new BufferedInputStream(fis);
-        BufferedOutputStream out = new BufferedOutputStream(sock.getOutputStream());
-
-        int count;
-
-        while ((count = bis.read(bytes)) > 0) {
-        	System.out.println(count);
-            out.write(bytes, 0, count);
-        }
+		File file = new File("src//Signed_CSECA_server_key.crt");
+        InputStream in = new FileInputStream(file);
+        OutputStream out = sock.getOutputStream();
+        copy(in, out);
+        out.close();
+        in.close();
         System.out.println("done");
 	}
 	
