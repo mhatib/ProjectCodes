@@ -42,26 +42,19 @@ public class Client1 {
 		
 		
 		DataInputStream dIn = new DataInputStream(socket.getInputStream());
-/*		int size = dIn.read();
-		
-		System.out.println(size);*/
-		int size = 128;
-		//System.out.println(dIn.read());// read length of incoming message
-		if(size>0) {
-		    byte[] message = new byte[size];
-		    dIn.readFully(message, 0, message.length); // read the message
-		    PublicKey publicKey = readPublicKey("src//publicServer.der");
-	        byte[] recovered_message = decrypt(publicKey, message);
-	        String received = new String(recovered_message, "UTF8");
-	        if (received.equals(initR)){
-	        	trust = true;
-	        }
-		}
+
+	    byte[] message = new byte[128];
+	    dIn.readFully(message, 0, message.length); // read the message
+	    PublicKey publicKey = readPublicKey("src//publicServer.der");
+        byte[] recovered_message = decrypt(publicKey, message);
+        String received = new String(recovered_message, "UTF8");
+        if (received.equals(initR)){
+        	trust = true;
+        }		
 		
 		if (trust){
 			System.out.println("Let's go");
-		}
-        
+		}       
         
         
 /*        File file = new File("src//disp.pdf");
