@@ -34,10 +34,10 @@ import javax.crypto.NoSuchPaddingException;
 
 public class UploaderHelper {
 	
-	public static void saveByteArrayToFile(String filename, byte[] bytes) throws IOException{
+/*	public static void saveByteArrayToFile(String filename, byte[] bytes) throws IOException{
 		Path path = Paths.get("//src/"+filename);
 		Files.write(path, bytes);
-	}
+	}*/
 	
 	public static void saveBytes(String filename, byte[] bytes) throws IOException{
 		FileOutputStream output = new FileOutputStream(new File("src//"+filename));
@@ -65,26 +65,6 @@ public class UploaderHelper {
        return b;        
 	}
 	
-	public static void sendByteArray(Socket socket, byte[] bytes) throws IOException{
-		BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
-		BufferedInputStream buffIn = null;
-		int count = buffIn.read(bytes);
-		while ((count = buffIn.read(bytes)) > 0) {
-        	buffOut.write(bytes, 0, count);
-        } 
-		in.close();
-		buffOut.close();
-		buffIn.close();
-	}
-	
-/*	public byte[] receiveByteArray(Socket socket, byte[] bytes){
-		BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
-		BufferedInputStream buffIn = null;
-		return b;
-	}*/
-	
 	public static byte[] decrypt(PublicKey key, byte[] ciphertext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException
 	{
 	    Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");   
@@ -105,15 +85,6 @@ public class UploaderHelper {
 	    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 	    return keyFactory.generatePublic(publicSpec);       
 	}
-	
-	public static void copy(InputStream in, OutputStream out) throws IOException {
-        byte[] buf = new byte[8192];
-        int len = 0;
-        while ((len = in.read(buf)) != -1) {
-            out.write(buf, 0, len);
-            out.flush();
-        }
-    }
 	
 	public static String readFromClient(Socket sock) throws IOException{
 		InputStream inp = sock.getInputStream();
