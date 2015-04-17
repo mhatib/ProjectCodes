@@ -31,7 +31,7 @@ public class Client1 {
         BufferedOutputStream bos = null;
         BufferedReader br = null;
 		
-        String hostName = "localhost";        
+        String hostName = "10.12.20.84";        
         int portNumber = 4321;
         Socket socket = new Socket(hostName, portNumber);   
         
@@ -42,9 +42,13 @@ public class Client1 {
 		
 		
 		DataInputStream dIn = new DataInputStream(socket.getInputStream());
-		int length = dIn.readInt();                    // read length of incoming message
-		if(length>0) {
-		    byte[] message = new byte[length];
+/*		int size = dIn.read();
+		
+		System.out.println(size);*/
+		int size = 128;
+		//System.out.println(dIn.read());// read length of incoming message
+		if(size>0) {
+		    byte[] message = new byte[size];
 		    dIn.readFully(message, 0, message.length); // read the message
 		    PublicKey publicKey = readPublicKey("src//publicServer.der");
 	        byte[] recovered_message = decrypt(publicKey, message);
