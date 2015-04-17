@@ -3,17 +3,28 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.Certificate;
 import java.security.PublicKey;
+import java.security.cert.CertificateFactory;
 
+import javax.crypto.Cipher;
 import javax.security.cert.X509Certificate;
+9Certificate;
 
 
 public class Client2 {
+	private static Cipher ecipher;
 	public static void main(String[] args) throws Exception {
+		
+		
 		byte[] signature = null;
         String hostName = "localhost";        
         int portNumber = 4321;
@@ -105,6 +116,25 @@ public class Client2 {
         }
         
         
+        //Server's Public Key signed by the CSE-CA
+        FileInputStream fin = new FileInputStream("//src/CA.crt");
+        CertificateFactory f = CertificateFactory.getInstance("X.509");
+        Certificate CAcertificate = (Certificate) f.generateCertificate(fin);
+        PublicKey CA_pk = CAcertificate.getPublicKey();
+        
+        ecipher = Cipher.getInstance(CAKey.getAlgorithm());
+        ecipher.init(Cipher.DECRYPT_MODE, CA_pk);
+        byte[] descrypedBytesofCSESignedCert = ecipher.doFinal(bytes2);
+        
+        FileInputStream pk_unsigned_stream = new FileInputStream(file2);
+        BufferedOutputStream buffOut2 = new BufferedOutputStream(socket.getOutputStream());
+        
+        int count2;
+        while ((count2 = buffIn.read(bytes2)) > 0) {
+        	buffOut2.write(bytes2, 0, count2);
+        } 
+        
+        
 
         fileIn.close();
         buffIn.close();
@@ -113,5 +143,41 @@ public class Client2 {
          	
     	  
     }
+	
+	public void saveByteArrayToFile(String filename, byte[] bytes){
+		Path path = Paths.get("//src/"+filename);
+		Files.write(path, bytes);
+	}
+	
+	public byte[] convertFileToByteArray(String filename){
+		FileInputStream fileInputStream=null;
+		Path path = Paths.get("//src/"+filename);
+		File file = path.toFile();
+        byte[] bFile = new byte[(int) file.length()];
+        try {
+		    fileInputStream = new FileInputStream(file);
+		    fileInputStream.read(bFile);
+		    fileInputStream.close();
+		    for (int i = 0; i < bFile.length; i++) {
+		       	System.out.print((char)bFile[i]);
+	        }
+		    System.out.println("Done");
+        }catch(Exception e){
+        	e.printStackTrace();
+        }
+	}
+	
+	public void sendByteArray(Socket socket, byte[] bytes){
+		BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
+		BufferedInputStream buffIn;
+		int count = buffIn.read(bytes);
+		while ((count = buffIn.read(bytes)) > 0) {
+        	buffOut.write(bytes, 0, count);
+        } 
+	}
+	
+	
+	
 }
 
