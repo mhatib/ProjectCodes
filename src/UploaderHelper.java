@@ -33,21 +33,21 @@ import javax.crypto.NoSuchPaddingException;
 
 public class UploaderHelper {
 	
-	public void saveByteArrayToFile(String filename, byte[] bytes) throws IOException{
+	public static void saveByteArrayToFile(String filename, byte[] bytes) throws IOException{
 		Path path = Paths.get("//src/"+filename);
 		Files.write(path, bytes);
 	}
 	
 	public static byte[] convertFileToByteArray(String filename){
-		Path path = Paths.get("//src/"+filename);
-		File file = path.toFile();
+		Path path = Paths.get(filename);
+		File file = new File("src//"+filename);
         byte[] b = new byte[(int) file.length()];
         try {
             FileInputStream fileInputStream = new FileInputStream(file);
             fileInputStream.read(b);
-            for (int i = 0; i < b.length; i++) {
+/*            for (int i = 0; i < b.length; i++) {
             	System.out.print((char)b[i]);
-            }
+            }*/
         }catch (FileNotFoundException e) {
         	System.out.println("File Not Found.");
             e.printStackTrace();
@@ -59,7 +59,7 @@ public class UploaderHelper {
        return b;        
 	}
 	
-	public void sendByteArray(Socket socket, byte[] bytes) throws IOException{
+	public static void sendByteArray(Socket socket, byte[] bytes) throws IOException{
 		BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		BufferedOutputStream buffOut = new BufferedOutputStream(socket.getOutputStream());
 		BufferedInputStream buffIn = null;
@@ -98,6 +98,7 @@ public class UploaderHelper {
         int len = 0;
         while ((len = in.read(buf)) != -1) {
             out.write(buf, 0, len);
+            out.flush();
         }
     }
 	
@@ -118,14 +119,32 @@ public class UploaderHelper {
     	//dOut.close();
 	}
 	
+	public static void sendBytes(byte[] msg, Socket sock) throws Exception{
+
+    	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
+    	dOut.write(msg);
+    	//dOut.close();
+	}
+	
 	public static void sendCert(Socket sock) throws IOException{
 		File file = new File("src//Signed_CSECA_server_key.crt");
-        InputStream in = new FileInputStream(file);
-        OutputStream out = sock.getOutputStream();
-        copy(in, out);
-        out.close();
-        in.close();
+        FileInputStream in = new FileInputStream(file);
+        //OutputStream out = sock.getOutputStream();
+        copy(in, sock.getOutputStream());
+        System.out.println("test");
+        //sock.shutdownInput();
+        //out.close();
+        //in.close();
         //System.out.println("done");
+	}
+	
+	public static void receiveCertificate(Socket sock) throws IOException{		
+		//InputStream in = sock.getInputStream();
+        FileOutputStream out = new FileOutputStream("src//cserv.crt");
+        copy(sock.getInputStream(), out);
+        //sock.shutdownInput();
+        //in.close();
+        //out.close();
 	}
 	
 	
@@ -166,13 +185,7 @@ public class UploaderHelper {
 	    return message;
 	}
 	
-	public static void receiveCertificate(Socket sock) throws IOException{		
-		InputStream in = sock.getInputStream();
-        OutputStream out = new FileOutputStream("src//cserv.crt");
-        copy(in, out);
-        out.close();
-        in.close();
-	}
+
 	
 	
 }
