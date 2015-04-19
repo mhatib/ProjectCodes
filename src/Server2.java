@@ -1,39 +1,42 @@
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-
+import java.security.PrivateKey;
 
 public class Server2 {
+	byte[] decryptedByteArray;
 	public static void main(String[] args) throws Exception {
 		ServerSocket serverSocket = new ServerSocket(4321);
     	System.out.println("(... expecting connection ...)");
         Socket socket = serverSocket.accept();     
     	System.out.println("(... connection established ...)");
-        InputStream is = null;
-        FileOutputStream fos = null;
-        BufferedOutputStream bos = null;
-        int bufferSize = 0;
-        is = socket.getInputStream();
-
-        bufferSize = socket.getReceiveBufferSize();
-        System.out.println("Buffer size: " + bufferSize);
-        fos = new FileOutputStream("src//disp2.pdf");
-        bos = new BufferedOutputStream(fos);
-        byte[] bytes = new byte[bufferSize];
-
-        int count;
+    	
+    	String init = "Hello SecStore, please prove your identity";
+        String initR = "Hello, this is SecStore";
         
-        while ((count = is.read(bytes)) > 0) {
-            bos.write(bytes, 0, count);
+        String text = UploaderHelper.readFromClient(socket);
+        
+        System.out.println(text);
+        if (text.equals(init)){
+        	UploaderHelper.encryptPrivateAndSend(initR, socket);
         }
-
-        bos.flush();
-        bos.close();
-        is.close();
-        socket.close();
-        serverSocket.close();
+        byte[] file = UploaderHelper.convertFileToByteArray("Signed_CSECA_server_key.crt");
+        UploaderHelper.sendBytes(file, socket);
+        
+        text = UploaderHelper.readFromClient(socket);
+        int blockn = Integer.parseInt(text);
+        
+        PrivateKey server_private_key = UploaderHelper.getPrivateKey("src//privateServer.der");
+        
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+		for(int i=0; i<blockn; i++){
+			byte[] tempByteArrayBlock = UploaderHelper.receiveByteArray(socket);
+			tempByteArrayBlock=UploaderHelper.decryptPri(server_private_key, tempByteArrayBlock);
+			outputStream.write(tempByteArrayBlock);
+		}
+		byte decryptedByteArray[] = outputStream.toByteArray();
+		UploaderHelper.saveBytes("savedFile.pdf", decryptedByteArray);
+        System.out.println("complete");
 	}
 }
 

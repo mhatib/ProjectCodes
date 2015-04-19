@@ -1,5 +1,3 @@
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -11,9 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
@@ -113,6 +109,22 @@ public class UploaderHelper {
     	//dOut.close();
 	}
 	
+	public static void sendBytesWithoutLength(byte[] msg, Socket sock) throws Exception{
+		
+    	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
+//    	dOut.writeInt(msg.length);
+    	dOut.write(msg);
+    	//dOut.close();
+	}
+	
+	public static void sendMultipleBytes(byte[][] msg, Socket sock) throws Exception{
+		
+    	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
+    	for (int i = 0; i < msg.length; i++) {
+			dOut.write(msg[i]);
+		}
+	}
+	
 	
 	public static PrivateKey getPrivateKey(String filename) throws Exception {
         File f = new File(filename);
@@ -145,8 +157,8 @@ public class UploaderHelper {
 		 byte[][] Bytereturn = new byte[(int)Math.ceil(source.length / (double)chunksize)][chunksize];
 		 int start = 0;
 		 for(int i = 0; i < Bytereturn.length; i++) {
-		 Bytereturn[i] = Arrays.copyOfRange(source,start, start + chunksize);
-		 start += chunksize ;
+			 Bytereturn[i] = Arrays.copyOfRange(source,start, start + chunksize);
+			 start += chunksize ;
 		 }
 		 return Bytereturn;
 	}
@@ -169,7 +181,4 @@ public class UploaderHelper {
 		byte[] returnArray = outputStream.toByteArray();
 		return returnArray;
 	}
-
-	
-	
 }
