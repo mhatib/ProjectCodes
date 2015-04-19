@@ -1,4 +1,6 @@
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.PrivateKey;
@@ -10,6 +12,8 @@ public class Server2 {
     	System.out.println("(... expecting connection ...)");
         Socket socket = serverSocket.accept();     
     	System.out.println("(... connection established ...)");
+    	PrintWriter pout = new PrintWriter(socket.getOutputStream(),true);
+		DataInputStream dIn = new DataInputStream(socket.getInputStream());
     	
     	String init = "Hello SecStore, please prove your identity";
         String initR = "Hello, this is SecStore";
@@ -23,19 +27,28 @@ public class Server2 {
         byte[] file = UploaderHelper.convertFileToByteArray("Signed_CSECA_server_key.crt");
         UploaderHelper.sendBytes(file, socket);
         
-        text = UploaderHelper.readFromClient(socket);
-        int blockn = Integer.parseInt(text);
+        String text2 = UploaderHelper.readFromClient(socket);
+        System.out.println("Client: " +text2);
+        String text3 = UploaderHelper.readFromClient(socket);
+        System.out.println("Length per block " +text3);
+        int blockn = Integer.parseInt(text3);
+        System.out.println(blockn);
         
         PrivateKey server_private_key = UploaderHelper.getPrivateKey("src//privateServer.der");
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
-		for(int i=0; i<blockn; i++){
-			byte[] tempByteArrayBlock = UploaderHelper.receiveByteArray(socket);
-			tempByteArrayBlock=UploaderHelper.decryptPri(server_private_key, tempByteArrayBlock);
+		System.out.println("Receiving starts");
+		byte[] tempByteArrayBlock = new byte[blockn];
+        for(int i=0; i<blockn; i++){
+			System.out.println(i);
+			dIn.read(tempByteArrayBlock,0, blockn);
+//			tempByteArrayBlock=UploaderHelper.decryptPri(server_private_key, tempByteArrayBlock);
 			outputStream.write(tempByteArrayBlock);
 		}
+        pout.println("Receiving complete");
+		System.out.println("Receiving complete");
 		byte decryptedByteArray[] = outputStream.toByteArray();
-		UploaderHelper.saveBytes("savedFile.pdf", decryptedByteArray);
+		UploaderHelper.saveBytes("savedFile1.pdf", decryptedByteArray);
         System.out.println("complete");
 	}
 }

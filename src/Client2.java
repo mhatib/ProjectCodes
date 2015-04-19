@@ -1,3 +1,4 @@
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -18,7 +19,6 @@ public class Client2 {
 		    
 		    PrintWriter pout = new PrintWriter(socket.getOutputStream(), true);		
 			pout.println("Hello SecStore, please prove your identity");
-			
 			message = UploaderHelper.receiveByteArray(socket);
 			pout.println("Send me your certificate signed by CA");
 			
@@ -35,16 +35,26 @@ public class Client2 {
 			
 			byte[] file = UploaderHelper.convertFileToByteArray("disp.pdf");
 			byte[][] encFile = UploaderHelper.divideArray(file,117);
-			System.out.println(encFile.length);
-			for(int i=0; i<encFile.length; i++){
-				System.out.println(i+" "+encFile[i].length);
-			}
+			System.out.println("Number of blocks: "+encFile.length);
+			System.out.println("Block size: "+encFile[0].length);
+
 			//Let the server know the total number of blocks
-			pout.print(117);
+			pout.println("117");
 			
+			System.out.println("Start encryption");
 			for(int i=0; i<encFile.length; i++){
-				UploaderHelper.sendBytesWithoutLength(UploaderHelper.encryptPub(CAKey, encFile[i]), socket);
+				System.out.println("Encrypting "+i+" block");
+				encFile[i]=UploaderHelper.encryptPub(CAKey, encFile[i]);
+//				UploaderHelper.sendBytesWithoutLength(UploaderHelper.encryptPub(CAKey, encFile[i]), socket);
 			}
+			System.out.println("Encryption Completed");
+			DataOutputStream fileOut = new DataOutputStream(socket.getOutputStream());
+			System.out.println("Start transfer");
+			for(int i=0; i<encFile.length; i++){
+				System.out.println("Transferring "+i);
+		    	fileOut.write(encFile[i]);
+			}
+			System.out.println("Transfer complete");
 			String completeM = UploaderHelper.readFromClient(socket);
 			System.out.println(completeM);
 		}
