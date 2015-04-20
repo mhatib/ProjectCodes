@@ -39,21 +39,24 @@ public class Client2 {
 			System.out.println("Block size: "+encFile[0].length);
 
 			//Let the server know the total number of blocks
-			pout.println("117");
-			
+			pout.println(encFile.length);
+			pout.println(30);
+			DataOutputStream fileOut = new DataOutputStream(socket.getOutputStream());
 			System.out.println("Start encryption");
 			for(int i=0; i<encFile.length; i++){
 				System.out.println("Encrypting "+i+" block");
-				encFile[i]=UploaderHelper.encryptPub(CAKey, encFile[i]);
+				byte[] a=UploaderHelper.encryptPub(CAKey, encFile[i]);
+				fileOut.writeInt(a.length);
+				fileOut.write(a);
 //				UploaderHelper.sendBytesWithoutLength(UploaderHelper.encryptPub(CAKey, encFile[i]), socket);
 			}
 			System.out.println("Encryption Completed");
-			DataOutputStream fileOut = new DataOutputStream(socket.getOutputStream());
-			System.out.println("Start transfer");
+			//DataOutputStream fileOut = new DataOutputStream(socket.getOutputStream());
+/*			System.out.println("Start transfer");
 			for(int i=0; i<encFile.length; i++){
 				System.out.println("Transferring "+i);
 		    	fileOut.write(encFile[i]);
-			}
+			}*/
 			System.out.println("Transfer complete");
 			String completeM = UploaderHelper.readFromClient(socket);
 			System.out.println(completeM);
