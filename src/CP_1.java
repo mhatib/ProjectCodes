@@ -36,22 +36,24 @@ public class CP_1 {
 			//Block for througput testing
 			Long startTime = System.currentTimeMillis();
 
-			byte[] file = UploaderHelper.convertFileToByteArray("csetextbook.pdf");
+			byte[] file = UploaderHelper.convertFileToByteArray("disp.pdf");
 			byte[][] encFile = UploaderHelper.divideArray(file,117);
 //			System.out.println("Number of blocks: "+encFile.length);
 //			System.out.println("Block size: "+encFile[0].length);
 
 			//Let the server know the total number of blocks
 			pout.println(encFile.length);
-			int lastBlockSize = encFile.length%117;
-			pout.println(lastBlockSize);
-			DataOutputStream fileOut = new DataOutputStream(socket.getOutputStream());
+			//int lastBlockSize = encFile.length%117;
+			//pout.println(lastBlockSize);
+			//DataOutputStream fileOut = new DataOutputStream(socket.getOutputStream());
+			//fileOut.flush();
 //			System.out.println("Start encryption");
 			for(int i=0; i<encFile.length; i++){
-//				System.out.println("Encrypting "+i+" block");
+				//System.out.println("Encrypting "+i+" block");
 				byte[] a=UploaderHelper.encryptPub(CAKey, encFile[i]);
-				fileOut.writeInt(a.length);
-				fileOut.write(a);
+				UploaderHelper.sendBytes(a, socket);
+				//fileOut.writeInt(a.length);
+				//fileOut.write(a);
 			}
 //			System.out.println("Encryption Completed");
 //			System.out.println("Transfer complete");

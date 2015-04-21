@@ -22,7 +22,7 @@ public class CP_1_Server {
         
         System.out.println(text);
         if (text.equals(init)){
-        	UploaderHelper.encryptPrivateAndSend(initR, socket);
+        	UploaderHelper.encryptPrivateAndSend(initR.getBytes(), socket);
         }
         byte[] file = UploaderHelper.convertFileToByteArray("Signed_CSECA_server_key.crt");
         UploaderHelper.sendBytes(file, socket);
@@ -30,9 +30,15 @@ public class CP_1_Server {
         String text2 = UploaderHelper.readFromClient(socket);
         System.out.println("Client: " +text2);
         String text3 = UploaderHelper.readFromClient(socket);
-        System.out.println("Length per block " +text3);
+        System.out.println("Number of block " +text3);
         int blockn = Integer.parseInt(text3);
         System.out.println(blockn);
+/*        String text4 = UploaderHelper.readFromClient(socket);
+        System.out.println("Length per block " +text4);
+        int blockn2 = Integer.parseInt(text3);
+        System.out.println(blockn2);*/
+        
+        
         
         PrivateKey server_private_key = UploaderHelper.getPrivateKey("src//privateServer.der");
         
@@ -45,12 +51,12 @@ public class CP_1_Server {
 //        Long endTime = System.currentTimeMillis();
 //        System.out.println();
 		
-		byte[] tempByteArrayBlock = new byte[blockn];
+		//byte[] tempByteArrayBlock = new byte[blockn2];
         for(int i=0; i<blockn; i++){
-			System.out.println(i);
-			dIn.read(tempByteArrayBlock,0, blockn);
-//			tempByteArrayBlock=UploaderHelper.decryptPri(server_private_key, tempByteArrayBlock);
-			outputStream.write(tempByteArrayBlock);
+			//System.out.println(i);
+			//dIn.read(tempByteArrayBlock,0, blockn);
+			byte[] s=UploaderHelper.decryptPri(server_private_key, UploaderHelper.receiveByteArray(socket));
+			outputStream.write(s);
 		}
         pout.println("Receiving complete");
 		System.out.println("Receiving complete");
