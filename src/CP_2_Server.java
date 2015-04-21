@@ -2,6 +2,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.Key;
+import java.security.MessageDigest;
 import java.security.PrivateKey;
 
 import javax.crypto.Cipher;
@@ -9,30 +10,32 @@ import javax.crypto.spec.SecretKeySpec;
 
 
 public class CP_2_Server {
-public static void main(String[] args) throws Exception{
-		
+	public static void main(String[] args) throws Exception{
+		String text = "";
 		//Establishing connection
 		ServerSocket serverSocket = new ServerSocket(4321);
     	System.out.println("---Awaiting Client Connection---");
         Socket socket = serverSocket.accept();     
     	System.out.println("---Client Connected---");
     	
-        String init = "Hello SecStore, please prove your identity";
-        String initR = "Hello, this is SecStore";
+        //String init = "Hello SecStore, please prove your identity";
+        //String initR = "Hello, this is SecStore";
         
-    	String text = UploaderHelper.readFromClient(socket);
-    	
-        System.out.println(text);
-        if (text.equals(init)){
-        	UploaderHelper.encryptPrivateAndSend(initR, socket);
-        }
+    	String nonce = UploaderHelper.readFromClient(socket);    	
+        System.out.println(nonce);
+       /* String password = "3ncrypt3d";
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] nMsg = (password+nonce).getBytes();
+		md.update(nMsg);
+		byte[] dgst = md.digest();
+		System.out.println(dgst);*/
+        UploaderHelper.encryptPrivateAndSend(nonce.getBytes(), socket);
         
         //Send server cert to client
-        byte[] serverCert = UploaderHelper.convertFileToByteArray("Signed_CSECA_server_key.crt");
-        UploaderHelper.sendBytes(serverCert, socket);
-        
         text = UploaderHelper.readFromClient(socket);
         System.out.println(text);
+        byte[] serverCert = UploaderHelper.convertFileToByteArray("Signed_CSECA_server_key.crt");
+        UploaderHelper.sendBytes(serverCert, socket);
         
         //Receive symmetric key from client        
         byte[] encKey = UploaderHelper.receiveByteArray(socket);

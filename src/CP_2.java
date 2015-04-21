@@ -2,6 +2,7 @@ import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.Key;
+import java.security.MessageDigest;
 import java.security.PublicKey;
 
 import javax.crypto.Cipher;
@@ -13,25 +14,25 @@ public class CP_2 {
 	public static void main(String[] args) throws Exception{
 		
 		//Establish connection to server
-		byte[] message = null;
 		final byte[] keyValue = new byte[] { 'T', 'h', 'i', 's', 'I', 's', 'A', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
 		String hostName = "localhost";        
 	    int portNumber = 4321;
 	    Socket socket = new Socket(hostName, portNumber);
 	    
 	    //Write nonce to server
+	    String nonce = "Hello SecStore, please prove your identity";
 	    PrintWriter pout = new PrintWriter(socket.getOutputStream(), true);		
-		pout.println("Hello SecStore, please prove your identity");
+		pout.println(nonce);
 		
-		//Receive envrypted nonceMsg from server
-		message = UploaderHelper.receiveByteArray(socket);
+		//Receive encrypted nonceMsg from server
+		byte[] nonceMsg = UploaderHelper.receiveByteArray(socket);
 		
 		//Verify nonceMsg
-		
-		//Receive serverCert and save to file
-		pout.println("Send me your certificate signed by CA");		
-		byte[] cert = UploaderHelper.receiveByteArray(socket);
-		UploaderHelper.saveBytes("cserve.crt",cert);
+	    /*String password = "3ncrypt3d";
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] nMsg = (password+nonce).getBytes();
+		md.update(nMsg);
+		byte[] dgst = md.digest();*/
 		
 		//Verify cert with CA.crt
 		
@@ -41,8 +42,21 @@ public class CP_2 {
         PublicKey CAKey = CAcert.getPublicKey();
         
         //Decrypt nonceMsg
-        byte[] dec = UploaderHelper.decrypt(CAKey,message);
+        byte[] dec = UploaderHelper.decrypt(CAKey,nonceMsg);
 		System.out.println(new String(dec,"UTF8"));
+		
+		if (nonce.equals(new String(dec,"UTF8"))){
+			System.out.println("Server verified");
+		}
+		else{
+			System.out.println("False server. Possible MitM attack. Closing connection");
+			socket.close();
+		}
+		
+		//Receive serverCert and save to file
+		pout.println("Send me your certificate signed by CA");		
+		byte[] cert = UploaderHelper.receiveByteArray(socket);
+		UploaderHelper.saveBytes("cserve.crt",cert);		
 		
 		//Send AES keyvalue to server encrypted with server pubKey
 		UploaderHelper.sendBytes(UploaderHelper.encryptPub(CAKey, keyValue), socket);
