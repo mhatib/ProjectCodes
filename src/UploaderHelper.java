@@ -30,11 +30,6 @@ import javax.crypto.NoSuchPaddingException;
 
 public class UploaderHelper {
 	
-/*	public static void saveByteArrayToFile(String filename, byte[] bytes) throws IOException{
-		Path path = Paths.get("//src/"+filename);
-		Files.write(path, bytes);
-	}*/
-	
 	public static void saveBytes(String filename, byte[] bytes) throws IOException{
 		FileOutputStream output = new FileOutputStream(new File("src//"+filename));
 		output.write(bytes);
@@ -75,13 +70,6 @@ public class UploaderHelper {
 	    return cipher.doFinal(ciphertext);
 	}
 	
-/*	public static PublicKey readPublicKey(String filename) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException
-	{
-	    X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(convertFileToByteArray(filename));
-	    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-	    return keyFactory.generatePublic(publicSpec);       
-	}*/
-	
 	public static String readFromClient(Socket sock) throws IOException{
 		InputStream inp = sock.getInputStream();
     	InputStreamReader inpReader= new InputStreamReader(inp);
@@ -97,45 +85,26 @@ public class UploaderHelper {
     	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
     	dOut.writeInt(secret.length);
     	dOut.write(secret);
-    	//dOut.flush();
-    	//dOut.close();
 	}
 	
 	public static void encryptPublicAndSend(byte[] msg, PublicKey key, Socket sock) throws Exception{
-		//PublicKEy pubKey = getPrivateKey("src//privateServer.der");
-    	//byte[] message = msg.getBytes("UTF8");
     	byte[] secret = encryptPub(key, msg);
     	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
     	dOut.writeInt(secret.length);
     	dOut.write(secret);
-    	//dOut.flush();
-    	//dOut.close();
+;
 	}
 	
 	public static void sendBytes(byte[] msg, Socket sock) throws Exception{
-		
     	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
     	dOut.writeInt(msg.length);
     	dOut.write(msg);
-    	//dOut.close();
 	}
 	
 	public static void sendBytesWithoutLength(byte[] msg, Socket sock) throws Exception{
-		
     	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
-//    	dOut.writeInt(msg.length);
     	dOut.write(msg);
-    	//dOut.close();
 	}
-	
-/*	public static void sendMultipleBytes(byte[][] msg, Socket sock) throws Exception{
-		
-    	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
-    	for (int i = 0; i < msg.length; i++) {
-			dOut.write(msg[i]);
-		}
-	}*/
-	
 	
 	public static PrivateKey getPrivateKey(String filename) throws Exception {
         File f = new File(filename);
@@ -177,19 +146,9 @@ public class UploaderHelper {
 	public static byte[] receiveByteArray(Socket sock) throws IOException{
 		DataInputStream dIn = new DataInputStream(sock.getInputStream());
 		int length = dIn.readInt();
-System.out.println(length);
 	    byte[] message = new byte[length];
 	    dIn.readFully(message, 0, message.length); // read the message
 
 	    return message;
 	}
-	
-/*	public static byte[] glueByteArray(byte[][] bytearrays){
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		for(int i=0; i<bytearrays[1].length; i++){
-			outputStream.write(bytearrays[1][i]);
-		}
-		byte[] returnArray = outputStream.toByteArray();
-		return returnArray;
-	}*/
 }

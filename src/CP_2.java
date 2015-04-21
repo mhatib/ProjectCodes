@@ -1,19 +1,15 @@
 import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.Key;
 import java.security.PublicKey;
 
 import javax.crypto.Cipher;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.cert.X509Certificate;
 
 
-public class Client1 {
+public class CP_2 {
 	public static void main(String[] args) throws Exception{
 		
 		//Establish connection to server
@@ -74,4 +70,3 @@ public class Client1 {
 		 return key;
 	 }
 }
-

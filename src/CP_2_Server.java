@@ -5,13 +5,11 @@ import java.security.Key;
 import java.security.PrivateKey;
 
 import javax.crypto.Cipher;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
-public class Server1 {
-	public static void main(String[] args) throws Exception{
+public class CP_2_Server {
+public static void main(String[] args) throws Exception{
 		
 		//Establishing connection
 		ServerSocket serverSocket = new ServerSocket(4321);
@@ -70,4 +68,3 @@ public class Server1 {
 		 return key;
 	 }
 }
-
