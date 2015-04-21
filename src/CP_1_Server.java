@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.PrivateKey;
 
-public class Server2 {
+public class CP_1_Server {
 	byte[] decryptedByteArray;
 	public static void main(String[] args) throws Exception {
 		ServerSocket serverSocket = new ServerSocket(4321);
@@ -38,6 +38,13 @@ public class Server2 {
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
 		System.out.println("Receiving starts");
+		
+//		//Block for througput testing
+//		Long startTime = System.currentTimeMillis();
+//        //Block for througput testing
+//        Long endTime = System.currentTimeMillis();
+//        System.out.println();
+		
 		byte[] tempByteArrayBlock = new byte[blockn];
         for(int i=0; i<blockn; i++){
 			System.out.println(i);
@@ -50,6 +57,7 @@ public class Server2 {
 		byte decryptedByteArray[] = outputStream.toByteArray();
 		UploaderHelper.saveBytes("savedFile1.pdf", decryptedByteArray);
         System.out.println("complete");
+        
 	}
 }
 

@@ -10,10 +10,10 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.security.cert.X509Certificate;
 
 
-public class Client2 {
+public class CP_1 {
 	public static void main(String[] args) throws Exception{
 			byte[] message = null;
-			String hostName = "localhost";        
+			String hostName = "10.12.20.84";        
 		    int portNumber = 4321;
 		    Socket socket = new Socket(hostName, portNumber);
 		    
@@ -33,32 +33,32 @@ public class Client2 {
 	        
 			System.out.println(new String(dec,"UTF8"));
 			
-			byte[] file = UploaderHelper.convertFileToByteArray("disp.pdf");
+			//Block for througput testing
+			Long startTime = System.currentTimeMillis();
+
+			byte[] file = UploaderHelper.convertFileToByteArray("csetextbook.pdf");
 			byte[][] encFile = UploaderHelper.divideArray(file,117);
-			System.out.println("Number of blocks: "+encFile.length);
-			System.out.println("Block size: "+encFile[0].length);
+//			System.out.println("Number of blocks: "+encFile.length);
+//			System.out.println("Block size: "+encFile[0].length);
 
 			//Let the server know the total number of blocks
 			pout.println(encFile.length);
-			pout.println(30);
+			int lastBlockSize = encFile.length%117;
+			pout.println(lastBlockSize);
 			DataOutputStream fileOut = new DataOutputStream(socket.getOutputStream());
-			System.out.println("Start encryption");
+//			System.out.println("Start encryption");
 			for(int i=0; i<encFile.length; i++){
-				System.out.println("Encrypting "+i+" block");
+//				System.out.println("Encrypting "+i+" block");
 				byte[] a=UploaderHelper.encryptPub(CAKey, encFile[i]);
 				fileOut.writeInt(a.length);
 				fileOut.write(a);
-//				UploaderHelper.sendBytesWithoutLength(UploaderHelper.encryptPub(CAKey, encFile[i]), socket);
 			}
-			System.out.println("Encryption Completed");
-			//DataOutputStream fileOut = new DataOutputStream(socket.getOutputStream());
-/*			System.out.println("Start transfer");
-			for(int i=0; i<encFile.length; i++){
-				System.out.println("Transferring "+i);
-		    	fileOut.write(encFile[i]);
-			}*/
-			System.out.println("Transfer complete");
+//			System.out.println("Encryption Completed");
+//			System.out.println("Transfer complete");
 			String completeM = UploaderHelper.readFromClient(socket);
+	        //Block for througput testing
+	        Long endTime = System.currentTimeMillis();
+	        System.out.println(endTime-startTime);
 			System.out.println(completeM);
 		}
 		
