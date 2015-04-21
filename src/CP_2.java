@@ -14,11 +14,16 @@ public class CP_2 {
 	public static void main(String[] args) throws Exception{
 		
 		//Establish connection to server
-		final byte[] keyValue = new byte[] { 'T', 'h', 'i', 's', 'I', 's', 'A', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
-		String hostName = "localhost";        
+		String hostName = "10.12.20.84";        
 	    int portNumber = 4321;
+	    String saveFileName = "savedFile.pdf";
+	    
+	    
 	    Socket socket = new Socket(hostName, portNumber);
 	    
+	    
+	    final byte[] keyValue = new byte[] { 'T', 'h', 'i', 's', 'I', 's', 'A', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
+		
 	    //Write nonce to server
 	    String nonce = "Hello SecStore, please prove your identity";
 	    PrintWriter pout = new PrintWriter(socket.getOutputStream(), true);		
@@ -35,13 +40,17 @@ public class CP_2 {
 		byte[] dgst = md.digest();*/
 		
 		//Verify cert with CA.crt
+		//Receive serverCert and save to file
+				pout.println("Send me your certificate signed by CA");		
+				byte[] cert = UploaderHelper.receiveByteArray(socket);
+				UploaderHelper.saveBytes("cserve.crt",cert);		
 		
 		//Get public key from cert
     	FileInputStream inStream = new FileInputStream("src//cserve.crt");
         X509Certificate serverCert = X509Certificate.getInstance(inStream);
         PublicKey serverKey = serverCert.getPublicKey();
         
-//Authentication Protocol begins here
+        //Authentication Protocol begins here
         
         //Create X509Certificate object from CA.crt
         InputStream inStream2 = new FileInputStream("src//CA.crt");
@@ -87,19 +96,18 @@ public class CP_2 {
 			socket.close();
 		}
 		
-		//Receive serverCert and save to file
-		pout.println("Send me your certificate signed by CA");		
-		byte[] cert = UploaderHelper.receiveByteArray(socket);
-		UploaderHelper.saveBytes("cserve.crt",cert);		
+		
 		
 		//Send AES keyvalue to server encrypted with server pubKey
 		UploaderHelper.sendBytes(UploaderHelper.encryptPub(serverKey, keyValue), socket);
 		
 		//Encrypt file with AES and send
-		byte[] file = UploaderHelper.convertFileToByteArray("disp.pdf");
+		byte[] file = UploaderHelper.convertFileToByteArray(saveFileName);
 		byte[] encFile = encrypt(file);		
 		UploaderHelper.sendBytes(encFile, socket);
 		
+		String line = UploaderHelper.readFromClient(socket);
+		System.out.println(line);
 		//End task
 		System.out.println("Client completed");
 	}
