@@ -78,10 +78,10 @@ public class UploaderHelper {
         return text;
 	}
 	
-	public static void encryptPrivateAndSend(String msg, Socket sock) throws Exception{
+	public static void encryptPrivateAndSend(byte[] dgst, Socket sock) throws Exception{
 		PrivateKey privateKey = getPrivateKey("src//privateServer.der");
-    	byte[] message = msg.getBytes("UTF8");
-    	byte[] secret = encrypt(privateKey, message);
+    	//byte[] message = dgst.getBytes("UTF8");
+    	byte[] secret = encrypt(privateKey, dgst);
     	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
     	dOut.writeInt(secret.length);
     	dOut.write(secret);
