@@ -38,11 +38,11 @@ public class CP_2 {
 		
 		//Get public key from cert
     	FileInputStream inStream = new FileInputStream("src//cserve.crt");
-        X509Certificate CAcert = X509Certificate.getInstance(inStream);
-        PublicKey CAKey = CAcert.getPublicKey();
+        X509Certificate serverCert = X509Certificate.getInstance(inStream);
+        PublicKey serverKey = serverCert.getPublicKey();
         
         //Decrypt nonceMsg
-        byte[] dec = UploaderHelper.decrypt(CAKey,nonceMsg);
+        byte[] dec = UploaderHelper.decrypt(serverKey,nonceMsg);
 		System.out.println(new String(dec,"UTF8"));
 		
 		if (nonce.equals(new String(dec,"UTF8"))){
@@ -59,7 +59,7 @@ public class CP_2 {
 		UploaderHelper.saveBytes("cserve.crt",cert);		
 		
 		//Send AES keyvalue to server encrypted with server pubKey
-		UploaderHelper.sendBytes(UploaderHelper.encryptPub(CAKey, keyValue), socket);
+		UploaderHelper.sendBytes(UploaderHelper.encryptPub(serverKey, keyValue), socket);
 		
 		//Encrypt file with AES and send
 		byte[] file = UploaderHelper.convertFileToByteArray("disp.pdf");

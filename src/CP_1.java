@@ -13,7 +13,7 @@ import javax.security.cert.X509Certificate;
 public class CP_1 {
 	public static void main(String[] args) throws Exception{
 			byte[] message = null;
-			String hostName = "10.12.20.84";        
+			String hostName = "localhost";        
 		    int portNumber = 4321;
 		    Socket socket = new Socket(hostName, portNumber);
 		    
