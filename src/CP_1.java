@@ -2,13 +2,16 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.security.MessageDigest;
 import java.security.PublicKey;
+import java.util.Arrays;
 
 import javax.security.cert.X509Certificate;
 
 
 public class CP_1 {
 	public static void main(String[] args) throws Exception{
+		String password = "3ncrypt3d";
 		String hostName = "localhost";        
 	    int portNumber = 4321;
 	    Socket socket = new Socket(hostName, portNumber);
@@ -62,10 +65,21 @@ public class CP_1 {
         	System.out.println("CSE-CA and Server's certificate failed in verification!");
         }
         
+        //Hash with password
+        MessageDigest md = MessageDigest.getInstance("MD5");
+		md.update((nonce+=password).getBytes());
+		byte[] dgst = md.digest();
+        
         byte[] dec = UploaderHelper.decrypt(serverKey,nonceMsg);
         
-		System.out.println(new String(dec,"UTF8"));
-		
+		//System.out.println(new String(dec,"UTF8"));
+        if (Arrays.equals(dgst, dec)){
+			System.out.println("Server verified");
+		}
+		else{
+			System.out.println("False server. Possible MitM attack. Closing connection");
+			socket.close();
+		}
 		//Block for througput testing
 		//Long startTime = System.currentTimeMillis();
 

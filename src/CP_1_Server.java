@@ -2,12 +2,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.MessageDigest;
 import java.security.PrivateKey;
 
 public class CP_1_Server {
 	byte[] decryptedByteArray;
 	public static void main(String[] args) throws Exception {
-		
+		String password = "3ncrypt3d";
 		//Establish connection
 		ServerSocket serverSocket = new ServerSocket(4321);
     	System.out.println("(... expecting connection ...)");
@@ -18,9 +19,14 @@ public class CP_1_Server {
     	PrintWriter pout = new PrintWriter(socket.getOutputStream(),true);    	
     	String nonce = UploaderHelper.readFromClient(socket);    	
         System.out.println(nonce);
+        
+        //Hash with client password		
+  		MessageDigest md = MessageDigest.getInstance("MD5");
+  		md.update((nonce+=password).getBytes());
+  		byte[] dgst = md.digest();
 
         //Encrypt nonce with private key and send
-        UploaderHelper.encryptPrivateAndSend(nonce.getBytes(), socket);
+        UploaderHelper.encryptPrivateAndSend(dgst, socket);
         
         //Send certificate to client
         byte[] file = UploaderHelper.convertFileToByteArray("Signed_CSECA_server_key.crt");
