@@ -23,7 +23,7 @@ public class CP_2 {
 	    Socket socket = new Socket(hostName, portNumber);	    	    
 		
 	    //Write nonce to server
-	    String nonce = "Hello SecStore, please prove your identity";
+	    String nonce = ""+System.currentTimeMillis();
 	    PrintWriter pout = new PrintWriter(socket.getOutputStream(), true);		
 		pout.println(nonce);
 		

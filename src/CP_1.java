@@ -16,8 +16,8 @@ public class CP_1 {
 	    int portNumber = 4321;
 	    Socket socket = new Socket(hostName, portNumber);
 	    
-	    //Write nonce to server
-	    String nonce = "Hello SecStore, please prove your identity";
+	    //Write nonce to serverLong
+	    String nonce = ""+System.currentTimeMillis();
 	    PrintWriter pout = new PrintWriter(socket.getOutputStream(), true);		
 		pout.println(nonce);
 		
