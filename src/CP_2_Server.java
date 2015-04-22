@@ -2,7 +2,6 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.Key;
-import java.security.MessageDigest;
 import java.security.PrivateKey;
 
 import javax.crypto.Cipher;
@@ -17,23 +16,18 @@ public class CP_2_Server {
     	System.out.println("---Awaiting Client Connection---");
         Socket socket = serverSocket.accept();     
     	System.out.println("---Client Connected---");
-    	
-        //String init = "Hello SecStore, please prove your identity";
-        //String initR = "Hello, this is SecStore";
-        
+
+        //Receive nonce from client
     	String nonce = UploaderHelper.readFromClient(socket);    	
         System.out.println(nonce);
-       /* String password = "3ncrypt3d";
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] nMsg = (password+nonce).getBytes();
-		md.update(nMsg);
-		byte[] dgst = md.digest();
-		System.out.println(dgst);*/
-        UploaderHelper.encryptPrivateAndSend(nonce.getBytes(), socket);
+
+        //Encrypt nonce with private key and send
+        UploaderHelper.encryptPrivateAndSend(nonce.getBytes(), socket);        
         
-        //Send server cert to client
         text = UploaderHelper.readFromClient(socket);
         System.out.println(text);
+        
+       //Send server cert to client
         byte[] serverCert = UploaderHelper.convertFileToByteArray("Signed_CSECA_server_key.crt");
         UploaderHelper.sendBytes(serverCert, socket);
         
@@ -48,7 +42,7 @@ public class CP_2_Server {
         byte[] ncMsg = UploaderHelper.receiveByteArray(socket);
         
         //Decrypt file and save file
-        byte[] decMsg = decrypt(ncMsg, key);
+        byte[] decMsg = decryptAES(ncMsg, key);
         UploaderHelper.saveBytes("dispGet.pdf",decMsg);
         
         //Establish success and end connection
@@ -58,7 +52,7 @@ public class CP_2_Server {
         serverSocket.close();
 	}
 	
-	public static byte[] decrypt(byte[] valueToEnc, byte[] keyVal) throws Exception { 
+	public static byte[] decryptAES(byte[] valueToEnc, byte[] keyVal) throws Exception { 
 		 Key key = generateKey(keyVal); 
 		 Cipher c = Cipher.getInstance("AES/ECB/NoPadding"); 
 		 c.init(Cipher.DECRYPT_MODE, key); 

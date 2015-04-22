@@ -12,17 +12,13 @@ import javax.security.cert.X509Certificate;
 
 public class CP_2 {
 	public static void main(String[] args) throws Exception{
+		final byte[] keyValue = new byte[] { 'T', 'h', 'i', 's', 'I', 's', 'A', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
 		
 		//Establish connection to server
 		String hostName = "10.12.20.84";        
 	    int portNumber = 4321;
-	    String saveFileName = "savedFile.pdf";
-	    
-	    
-	    Socket socket = new Socket(hostName, portNumber);
-	    
-	    
-	    final byte[] keyValue = new byte[] { 'T', 'h', 'i', 's', 'I', 's', 'A', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
+	    String saveFileName = "disp.pdf";	 	    
+	    Socket socket = new Socket(hostName, portNumber);	    	    
 		
 	    //Write nonce to server
 	    String nonce = "Hello SecStore, please prove your identity";
@@ -31,34 +27,21 @@ public class CP_2 {
 		
 		//Receive encrypted nonceMsg from server
 		byte[] nonceMsg = UploaderHelper.receiveByteArray(socket);
+		pout.println("Send me your certificate signed by CA");
 		
-		//Verify nonceMsg
-	    /*String password = "3ncrypt3d";
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] nMsg = (password+nonce).getBytes();
-		md.update(nMsg);
-		byte[] dgst = md.digest();*/
-		
-		//Verify cert with CA.crt
-		//Receive serverCert and save to file
-				pout.println("Send me your certificate signed by CA");		
-				byte[] cert = UploaderHelper.receiveByteArray(socket);
-				UploaderHelper.saveBytes("cserve.crt",cert);		
+		//Receive serverCert and save to file				
+		byte[] cert = UploaderHelper.receiveByteArray(socket);
+		UploaderHelper.saveBytes("cserve.crt",cert);		
 		
 		//Get public key from cert
     	FileInputStream inStream = new FileInputStream("src//cserve.crt");
         X509Certificate serverCert = X509Certificate.getInstance(inStream);
         PublicKey serverKey = serverCert.getPublicKey();
         
-        //Authentication Protocol begins here
-        
-        //Create X509Certificate object from CA.crt
+        //Authentication Protocol begins here        
+        //Retrieve public key from serverCert
         InputStream inStream2 = new FileInputStream("src//CA.crt");
-        X509Certificate CAcert = X509Certificate.getInstance(inStream2);
-
-       
-        
-        //Extract Public key of the CA from the CA.crt.
+        X509Certificate CAcert = X509Certificate.getInstance(inStream2);       
         PublicKey CAKey = CAcert.getPublicKey();
         
         //Check the validity and verify signed certificate.
@@ -86,7 +69,7 @@ public class CP_2 {
         
         //Decrypt nonceMsg
         byte[] dec = UploaderHelper.decrypt(serverKey,nonceMsg);
-		System.out.println(new String(dec,"UTF8"));
+		System.out.println("Nonce:"+new String(dec,"UTF8"));
 		
 		if (nonce.equals(new String(dec,"UTF8"))){
 			System.out.println("Server verified");
@@ -96,23 +79,22 @@ public class CP_2 {
 			socket.close();
 		}
 		
-		
-		
 		//Send AES keyvalue to server encrypted with server pubKey
 		UploaderHelper.sendBytes(UploaderHelper.encryptPub(serverKey, keyValue), socket);
 		
 		//Encrypt file with AES and send
 		byte[] file = UploaderHelper.convertFileToByteArray(saveFileName);
-		byte[] encFile = encrypt(file);		
+		byte[] encFile = encryptAES(file);		
 		UploaderHelper.sendBytes(encFile, socket);
 		
 		String line = UploaderHelper.readFromClient(socket);
 		System.out.println(line);
 		//End task
 		System.out.println("Client completed");
+		socket.close();
 	}
 	
-	 public static byte[] encrypt(byte[] file) throws Exception { 
+	 public static byte[] encryptAES(byte[] file) throws Exception { 
 		 Key key = generateKey(); 
 		 Cipher c = Cipher.getInstance("AES/ECB/PKCS5Padding"); 
 		 c.init(Cipher.ENCRYPT_MODE, key); 

@@ -92,17 +92,11 @@ public class UploaderHelper {
     	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
     	dOut.writeInt(secret.length);
     	dOut.write(secret);
-;
 	}
 	
 	public static void sendBytes(byte[] msg, Socket sock) throws Exception{
     	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
     	dOut.writeInt(msg.length);
-    	dOut.write(msg);
-	}
-	
-	public static void sendBytesWithoutLength(byte[] msg, Socket sock) throws Exception{
-    	DataOutputStream dOut = new DataOutputStream(sock.getOutputStream());
     	dOut.write(msg);
 	}
 	

@@ -1,5 +1,4 @@
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -8,22 +7,22 @@ import java.security.PrivateKey;
 public class CP_1_Server {
 	byte[] decryptedByteArray;
 	public static void main(String[] args) throws Exception {
+		
+		//Establish connection
 		ServerSocket serverSocket = new ServerSocket(4321);
     	System.out.println("(... expecting connection ...)");
         Socket socket = serverSocket.accept();     
     	System.out.println("(... connection established ...)");
-    	PrintWriter pout = new PrintWriter(socket.getOutputStream(),true);
-		DataInputStream dIn = new DataInputStream(socket.getInputStream());
     	
-    	String init = "Hello SecStore, please prove your identity";
-        String initR = "Hello, this is SecStore";
+    	//Get nonce from client
+    	PrintWriter pout = new PrintWriter(socket.getOutputStream(),true);    	
+    	String nonce = UploaderHelper.readFromClient(socket);    	
+        System.out.println(nonce);
+
+        //Encrypt nonce with private key and send
+        UploaderHelper.encryptPrivateAndSend(nonce.getBytes(), socket);
         
-        String text = UploaderHelper.readFromClient(socket);
-        
-        System.out.println(text);
-        if (text.equals(init)){
-        	UploaderHelper.encryptPrivateAndSend(initR.getBytes(), socket);
-        }
+        //Send certificate to client
         byte[] file = UploaderHelper.convertFileToByteArray("Signed_CSECA_server_key.crt");
         UploaderHelper.sendBytes(file, socket);
         
@@ -32,37 +31,25 @@ public class CP_1_Server {
         String text3 = UploaderHelper.readFromClient(socket);
         System.out.println("Number of block " +text3);
         int blockn = Integer.parseInt(text3);
-        System.out.println(blockn);
-/*        String text4 = UploaderHelper.readFromClient(socket);
-        System.out.println("Length per block " +text4);
-        int blockn2 = Integer.parseInt(text3);
-        System.out.println(blockn2);*/
-        
-        
+        System.out.println(blockn);        
         
         PrivateKey server_private_key = UploaderHelper.getPrivateKey("src//privateServer.der");
         
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		System.out.println("Receiving starts");
 		
-//		//Block for througput testing
-//		Long startTime = System.currentTimeMillis();
-//        //Block for througput testing
-//        Long endTime = System.currentTimeMillis();
-//        System.out.println();
-		
-		//byte[] tempByteArrayBlock = new byte[blockn2];
+		//Recieve each block from client, decrypt and write to stream
         for(int i=0; i<blockn; i++){
-			//System.out.println(i);
-			//dIn.read(tempByteArrayBlock,0, blockn);
 			byte[] s=UploaderHelper.decryptPri(server_private_key, UploaderHelper.receiveByteArray(socket));
 			outputStream.write(s);
 		}
+        
         pout.println("Receiving complete");
 		System.out.println("Receiving complete");
 		byte decryptedByteArray[] = outputStream.toByteArray();
 		UploaderHelper.saveBytes("savedFile1.pdf", decryptedByteArray);
-        System.out.println("complete");
+        System.out.println("Server complete");
+        serverSocket.close();
         
 	}
 }
