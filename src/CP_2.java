@@ -3,7 +3,9 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.Key;
+import java.security.MessageDigest;
 import java.security.PublicKey;
+import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -13,7 +15,7 @@ import javax.security.cert.X509Certificate;
 public class CP_2 {
 	public static void main(String[] args) throws Exception{
 		final byte[] keyValue = new byte[] { 'T', 'h', 'i', 's', 'I', 's', 'A', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
-		
+		String password = "3ncrypt3d";
 		//Establish connection to server
 		String hostName = "10.12.20.84";        
 	    int portNumber = 4321;
@@ -67,11 +69,16 @@ public class CP_2 {
         	System.out.println("CSE-CA and Server's certificate failed in verification!");
         }
         
-        //Decrypt nonceMsg
-        byte[] dec = UploaderHelper.decrypt(serverKey,nonceMsg);
-		System.out.println("Nonce:"+new String(dec,"UTF8"));
+        //Hash with password
+        MessageDigest md = MessageDigest.getInstance("MD5");
+		md.update((nonce+=password).getBytes());
+		byte[] dgst = md.digest();
 		
-		if (nonce.equals(new String(dec,"UTF8"))){
+		//Decrypt nonceMsg
+        byte[] dec = UploaderHelper.decrypt(serverKey,nonceMsg);
+		//System.out.println("Nonce:"+new String(dec,"UTF8"));
+		
+		if (Arrays.equals(dgst, dec)){
 			System.out.println("Server verified");
 		}
 		else{

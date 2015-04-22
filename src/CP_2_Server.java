@@ -2,6 +2,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.Key;
+import java.security.MessageDigest;
 import java.security.PrivateKey;
 
 import javax.crypto.Cipher;
@@ -11,6 +12,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class CP_2_Server {
 	public static void main(String[] args) throws Exception{
 		String text = "";
+		String password = "3ncrypt3d";
 		//Establishing connection
 		ServerSocket serverSocket = new ServerSocket(4321);
     	System.out.println("---Awaiting Client Connection---");
@@ -20,9 +22,16 @@ public class CP_2_Server {
         //Receive nonce from client
     	String nonce = UploaderHelper.readFromClient(socket);    	
         System.out.println(nonce);
-
-        //Encrypt nonce with private key and send
-        UploaderHelper.encryptPrivateAndSend(nonce.getBytes(), socket);        
+        
+        //Hash with client password		
+  		MessageDigest md = MessageDigest.getInstance("MD5");
+  		md.update((nonce+=password).getBytes());
+  		byte[] dgst = md.digest();
+  		
+        //Encrypt nonce with private key and send        
+		//System.out.println("Nonce:"+new String(nonce.getBytes(),"UTF8"));
+		
+        UploaderHelper.encryptPrivateAndSend(dgst, socket);        
         
         text = UploaderHelper.readFromClient(socket);
         System.out.println(text);
